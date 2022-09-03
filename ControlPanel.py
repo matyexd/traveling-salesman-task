@@ -1,5 +1,6 @@
-from PyQt5.QtWidgets import QGroupBox, QGraphicsScene, QPushButton, QLineEdit, QLabel, QFileDialog
+from PyQt5.QtWidgets import QGroupBox, QGraphicsScene, QPushButton, QLineEdit, QLabel, QFileDialog, QRadioButton
 from PyQt5.QtCore import QUrl
+from algTravelSal import GeneticsAlg
 import json
 
 class ControlPanel(QGroupBox):
@@ -54,6 +55,8 @@ class ControlPanel(QGroupBox):
         buttonClearField.move(50, 200)
         buttonClearField.clicked.connect(self.onClearField)
 
+
+
     def onClickStart(self):
         self.citiesMatrix = []
         print('PyQt5 button click')
@@ -73,6 +76,10 @@ class ControlPanel(QGroupBox):
 
             self.citiesMatrix.append(arr)
         print(self.citiesMatrix)
+        alg = GeneticsAlg(len(self.citiesMatrix), self.citiesMatrix)
+        best_ind = alg.start()
+        self.scene.drawBestRoute(best_ind)
+        print(best_ind)
 
     def onClickPlaceRandomCity(self):
         print('onClickPlaceRandomCity')
@@ -93,4 +100,7 @@ class ControlPanel(QGroupBox):
         self.cityFromFile = []
         self.labelSelectedFile.setText("Выбранный файл: ")
         print('onClearField')
+
+    def onClickedManualRadioButton(self):
+        print('click')
 
