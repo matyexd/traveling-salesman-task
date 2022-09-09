@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QGraphicsScene, QGraphicsItemGroup, QLabel
+from PyQt5.QtWidgets import QGraphicsScene, QGraphicsItemGroup, QMessageBox
 from PyQt5.QtGui import QPen, QBrush, QFont
 from PyQt5.Qt import Qt
 from random import randint
@@ -11,10 +11,12 @@ class SceneGraph(QGraphicsScene):
         self.sceneSizeHeight = 507
         self.setSceneRect(0, 0, self.sceneSizeWidth, self.sceneSizeHeight)
         self.citiesCoordinates = []
+        self.isGetResult = False
+        self.bestRoute = []
 
         self.linePen = QPen(Qt.gray, 1) # обычные линии графа
         self.lineBestRoadPen = QPen(Qt.blue, 3)
-        self.circlePen = QPen(Qt.red, 3)# линии лучшего маршрута графа
+        self.circlePen = QPen(Qt.red, 3) # линии лучшего маршрута графа
 
         self.itemGroupLines = QGraphicsItemGroup()
         self.itemGroupLinesBestRoad = QGraphicsItemGroup()
@@ -26,7 +28,17 @@ class SceneGraph(QGraphicsScene):
         self.addItem(self.itemGroupRect)
         self.addItem(self.itemGroupCircle)
 
+        #
+        self.errorPointCount = QMessageBox()
+        self.errorPointCount.setText("Число городов на графе должно быть меньше 100!")
+        self.errorPointCount.setWindowTitle("Error")
+
     def mousePressEvent(self, event):
+        if (self.isGetResult):
+            return
+        if (len(self.citiesCoordinates) > 98):
+            self.errorPointCount.exec_()
+            return
         x = event.scenePos().x()
         y = event.scenePos().y()
         self.drawGraph(x, y)
@@ -48,15 +60,18 @@ class SceneGraph(QGraphicsScene):
         if (self.citiesCoordinates != []):
             for cityCoord in self.citiesCoordinates:
                 self.itemGroupLines.addToGroup(self.addLine(x, y, cityCoord[0], cityCoord[1], self.linePen))
-        print(x, y)
         self.citiesCoordinates.append([x, y])
 
     def getCities(self):
         return self.citiesCoordinates
 
+    def getIsGetResult(self):
+        return self.isGetResult
+
     def clearField(self):
         self.clear()
         self.citiesCoordinates = []
+        self.isGetResult = False
 
         self.itemGroupLines = QGraphicsItemGroup()
         self.itemGroupLinesBestRoad = QGraphicsItemGroup()
@@ -69,6 +84,7 @@ class SceneGraph(QGraphicsScene):
         self.addItem(self.itemGroupCircle)
 
     def drawBestRoute(self, bestRoute):
+        self.isGetResult = True
         for i in range(len(bestRoute)):
             if bestRoute[i] == 0:
                 continue
@@ -84,9 +100,8 @@ class SceneGraph(QGraphicsScene):
         y1 = self.citiesCoordinates[bestRoute[0]][1]
         x2 = self.citiesCoordinates[bestRoute[-1]][0]
         y2 = self.citiesCoordinates[bestRoute[-1]][1]
-        print(self.citiesCoordinates)
-        print(x1, y1, x2, y2)
         self.itemGroupLinesBestRoad.addToGroup(self.addLine(x1, y1, x2, y2, self.lineBestRoadPen))
+
 
 
 class ItemGroupCity(QGraphicsItemGroup):

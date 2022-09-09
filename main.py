@@ -15,6 +15,7 @@ class Window(QMainWindow):
 
         self.citiesMatrix = []
         self.scene = SceneGraph(self)
+        self.bestRouteMain = []
 
         self.title = "PyQt5 QGraphicView"
         self.top = 200
@@ -34,9 +35,9 @@ class Window(QMainWindow):
         self.title.setGeometry(470, 15, 350, 50)
         font = QFont("Times", 16, QFont.Bold)
         self.title.setFont(font)
+        self.resultPanel = ResultPanel(self, self.scene)
         GraphField(self, self.scene)
-        ControlPanel(self, self.scene)
-        ResultPanel(self, self.scene)
+        ControlPanel(self, self.scene, self.resultPanel.showBestRoute, self.resultPanel.showLengthRoute)
 
         self.show()
 

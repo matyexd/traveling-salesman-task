@@ -46,17 +46,16 @@ class GeneticsAlg:
             distance += self.distance_map[gene1][gene2]
         return distance,
 
-    def start(self):
+    def start(self, npop=300, ngen=100, cxpb=0.7, mutpb=0.2):
 
-        pop = self.toolbox.population(n=300)
+        pop = self.toolbox.population(n=npop)
 
         hof = tools.HallOfFame(1)
-        algorithms.eaSimple(pop, self.toolbox, 0.7, 0.2, 100, halloffame=hof)
+        algorithms.eaSimple(pop, self.toolbox, cxpb, mutpb, ngen, halloffame=hof)
 
         arr = hof[0]
 
         while arr[0] != 0:
             arr = np.roll(arr, 1)
         best_ind = arr
-
         return best_ind
