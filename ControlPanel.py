@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import QGroupBox, QGraphicsScene, QPushButton, QLineEdit, Q
 from PyQt5.QtCore import QUrl
 from algTravelSal import GeneticsAlg
 import json
+from utils import correctUploadedFile
 
 class ControlPanel(QGroupBox):
     def __init__(self, mainWindow, scene: QGraphicsScene, showBestRoute, showLengthRoute):
@@ -107,6 +108,9 @@ class ControlPanel(QGroupBox):
         buttonStart = QPushButton('Запуск', self)
         buttonStart.clicked.connect(self.onClickStart)
         self.layout.addWidget(buttonStart, 11, 0)
+
+    def printHelloWorld(self):
+        return 'hello world'
 
     def addError(self):
         #
@@ -287,9 +291,9 @@ class ControlPanel(QGroupBox):
             url = QUrl.fromLocalFile(fname)
             with open(fname) as f:
                 templates = json.load(f)
-            self.cityFromFile = templates["DistanceMatrix"]
-            if (self.isCorrectUploadedFile(self.cityFromFile) != True):
+            if (correctUploadedFile.isCorrectUploadedFile(templates["DistanceMatrix"]) != True):
                 raise Exception()
+            self.cityFromFile = templates["DistanceMatrix"]
             text = self.labelSelectedFile.text() + ' ' + url.fileName()
             self.labelSelectedFile.setText(text)
         except:
@@ -331,19 +335,6 @@ class ControlPanel(QGroupBox):
             self.lineEditGenCount.setDisabled(True)
             self.lineEditCxpb.setDisabled(True)
             self.lineEditMutpb.setDisabled(True)
-
-    def isCorrectUploadedFile(self, matrix):
-        try:
-            row = len(matrix)
-            if (row < 2):
-                return False
-            for i in range(len(matrix)):
-                for j in range(len(matrix[i])):
-                    if (matrix[i][j] != matrix[j][i]):
-                        return False
-            return True
-        except:
-            return False
 
     def getBestRoute(self):
         return self.bestRoute

@@ -37,11 +37,12 @@ class Window(QMainWindow):
         self.title.setFont(font)
         self.resultPanel = ResultPanel(self, self.scene)
         GraphField(self, self.scene)
-        ControlPanel(self, self.scene, self.resultPanel.showBestRoute, self.resultPanel.showLengthRoute)
-
-        self.show()
+        self.controlPanel = ControlPanel(self, self.scene, self.resultPanel.showBestRoute, self.resultPanel.showLengthRoute)
+    def printHelloWorld(self):
+        print('hello world')
 
 
 App = QApplication(sys.argv)
 window = Window()
+window.show()
 sys.exit(App.exec())
