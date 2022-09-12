@@ -71,7 +71,7 @@ class ControlPanel(QGroupBox):
         self.labelPopCount = QLabel('Размер популяции:')
         self.layout.addWidget(self.labelPopCount, 6, 0)
         self.lineEditPopCount = QLineEdit(self)
-        self.lineEditPopCount.setText('300')
+        self.lineEditPopCount.setText('200')
         self.layout.addWidget(self.lineEditPopCount, 6, 1)
         self.lineEditPopCount.setDisabled(True)
 
@@ -79,7 +79,7 @@ class ControlPanel(QGroupBox):
         self.labelGenCount = QLabel('Количество поколений:')
         self.layout.addWidget(self.labelGenCount, 7, 0)
         self.lineEditGenCount = QLineEdit(self)
-        self.lineEditGenCount.setText('100')
+        self.lineEditGenCount.setText('40000')
         self.layout.addWidget(self.lineEditGenCount, 7, 1)
         self.lineEditGenCount.setDisabled(True)
 
@@ -87,7 +87,7 @@ class ControlPanel(QGroupBox):
         self.labelCxpb = QLabel('Вероятность скрещивания:')
         self.layout.addWidget(self.labelCxpb, 8, 0)
         self.lineEditCxpb = QLineEdit(self)
-        self.lineEditCxpb.setText('0.7')
+        self.lineEditCxpb.setText('0.9')
         self.layout.addWidget(self.lineEditCxpb, 8, 1)
         self.lineEditCxpb.setDisabled(True)
 
@@ -108,9 +108,6 @@ class ControlPanel(QGroupBox):
         buttonStart = QPushButton('Запуск', self)
         buttonStart.clicked.connect(self.onClickStart)
         self.layout.addWidget(buttonStart, 11, 0)
-
-    def printHelloWorld(self):
-        return 'hello world'
 
     def addError(self):
         #
@@ -176,11 +173,11 @@ class ControlPanel(QGroupBox):
             if (self.checkbox.isChecked()):
                 if (self.getDataFromSettings()):
                     npop, ngen, cxpb, mutpb = self.getDataFromSettings()
-                    best_ind, best_fitness = startGenAlg(self.citiesMatrix, len(self.citiesMatrix), npop, ngen, cxpb, mutpb)
+                    best_ind, best_fitness = startGenAlg(self.cityFromFile, len(self.cityFromFile), npop, ngen, cxpb, mutpb)
                 else:
                     return
             else:
-                best_ind, best_fitness = startGenAlg(self.citiesMatrix, len(self.citiesMatrix))
+                best_ind, best_fitness = startGenAlg(self.cityFromFile, len(self.cityFromFile))
             self.bestRoute = best_ind
         elif self.radiobuttonManual:
             citiesCoordinates = self.scene.getCities()

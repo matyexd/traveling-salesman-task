@@ -2,6 +2,7 @@ import random
 from itertools import *
 import numpy as np
 from operator import attrgetter
+from utils.correctUploadedFile import isCorrectUploadedFile
 
 
 data = [[0, 43,56,3,6,34],
@@ -12,29 +13,9 @@ data = [[0, 43,56,3,6,34],
     [34,53,52,3423,23,0]]
 
 def selRandom(individuals, k):
-    """Select *k* individuals at random from the input *individuals* with
-    replacement. The list returned contains references to the input
-    *individuals*.
-    :param individuals: A list of individuals to select from.
-    :param k: The number of individuals to select.
-    :returns: A list of selected individuals.
-    This function uses the :func:`~random.choice` function from the
-    python base :mod:`random` module.
-    """
     return [random.choice(individuals) for i in range(k)]
 
 def selTournament(individuals, k, tournsize, fit_attr="fitness"):
-    """Select the best individual among *tournsize* randomly chosen
-    individuals, *k* times. The list returned contains
-    references to the input *individuals*.
-    :param individuals: A list of individuals to select from.
-    :param k: The number of individuals to select.
-    :param tournsize: The number of individuals participating in each tournament.
-    :param fit_attr: The attribute of individuals to use as selection criterion
-    :returns: A list of selected individuals.
-    This function uses the :func:`~random.choice` function from the python base
-    :mod:`random` module.
-    """
     chosen = []
     for i in range(k):
         aspirants = selRandom(individuals, tournsize)
@@ -46,51 +27,58 @@ class Individual:
         self.individual = ind
         self.fitness = fitness
 
-def cxOnePoint(child1, child2, cxpb):
-    if (random.randint(0, 100)/100 < cxpb):
-        s = random.randint(2, len(child1)-3)
-        child1cp, child2cp = child1, child2
-        ch1, ch2 = child1[:s], child2[:s]
-        arr = []
-        for i in range(0, s):
-            arr.append(child1cp[i])
-        for i in range(s, len(child1)):
-            if (child2cp[i] not in ch1):
-                ch1.append(child2cp[i])
-            arr.append(child2cp[i])
-        for i in child1cp:
-            if (i not in arr):
-                ch1.append(i)
-        arr = []
-        for i in range(0, s):
-            arr.append(child2cp[i])
-        for i in range(s, len(child2)):
-            if (child1cp[i] not in ch2):
-                ch2.append(child1cp[i])
-            arr.append(child1cp[i])
-        for i in child2cp:
-            if (i not in arr):
-                ch2.append(i)
-        child1, child2 = ch1, ch2
+def cx(child1, child2):
+
+    if (len(child1) != len(child2)):
+        raise ValueError('Не идентичные по размеру родители')
+
+    s = random.randint(2, len(child1)-3)
+    child1cp, child2cp = child1, child2
+    ch1, ch2 = child1[:s], child2[:s]
+    arr = []
+    for i in range(0, s):
+        arr.append(child1cp[i])
+    for i in range(s, len(child1)):
+        if (child2cp[i] not in ch1):
+            ch1.append(child2cp[i])
+        arr.append(child2cp[i])
+    for i in child1cp:
+        if (i not in arr):
+            ch1.append(i)
+    arr = []
+    for i in range(0, s):
+        arr.append(child2cp[i])
+    for i in range(s, len(child2)):
+        if (child1cp[i] not in ch2):
+            ch2.append(child1cp[i])
+        arr.append(child1cp[i])
+    for i in child2cp:
+        if (i not in arr):
+            ch2.append(i)
+    child1, child2 = ch1, ch2
+
+    if (len(child1) != len(child2)):
+        raise ValueError('Не идентичные по размеру потомки')
+
     return child1, child2
 
-def mutFlipBit(mutant, mutpb):
-    if (random.randint(0, 100) / 100 < mutpb):
-        pos1 = 0
-        pos2 = 0
+def mut(mutant):
+    pos1 = 0
+    pos2 = 0
 
-        while (pos1 == pos2):
-            pos1 = random.randint(0, len(mutant) - 1)
-            pos2 = random.randint(0, len(mutant) - 1)
-        mutant1 = mutant.copy()
+    while (pos1 == pos2):
+        pos1 = random.randint(0, len(mutant) - 1)
+        pos2 = random.randint(0, len(mutant) - 1)
+    mutant1 = mutant.copy()
 
-        mutant1[pos1] = mutant[pos2]
-        mutant1[pos2] = mutant[pos1]
-        mutant = mutant1
+    mutant1[pos1] = mutant[pos2]
+    mutant1[pos2] = mutant[pos1]
+    mutant = mutant1
 
     return mutant
 
-def startGenAlg(data, citiesCount, npop=300, ngen=100, cxpb=0.7, mutpb=0.2):
+def startGenAlg(data, citiesCount, npop=200, ngen=40000, cxpb=0.9, mutpb=0.2):
+
     arr = []
     for i in range(0, citiesCount):
         arr.append(i)
@@ -131,10 +119,21 @@ def startGenAlg(data, citiesCount, npop=300, ngen=100, cxpb=0.7, mutpb=0.2):
         parentInd2 = parents[1].individual
 
         # скрестили родителей, получили детей
-        child1, child2 = cxOnePoint(parentInd1, parentInd2, cxpb)
+        if (random.randint(0, 100) / 100 < cxpb):
+            child1, child2 = cx(parentInd1, parentInd2)
+        else:
+            child1, child2 = parentInd1, parentInd2
 
         # мутация детей
-        mutChild1, mutChild2 = mutFlipBit(child1, mutpb), mutFlipBit(child2, mutpb)
+        if (random.randint(0, 100) / 100 < mutpb):
+            mutChild1 = mut(child1)
+        else:
+            mutChild1 = child1
+        if (random.randint(0, 100) / 100 < mutpb):
+            mutChild2 = mut(child2)
+        else:
+            mutChild2 = child2
+
 
         # добавляем одного ребенка
         fitness = 0
@@ -156,7 +155,7 @@ def startGenAlg(data, citiesCount, npop=300, ngen=100, cxpb=0.7, mutpb=0.2):
         populationAll.sort(key=lambda x: x.fitness)
         populationAll = populationAll[:(len(populationAll)-2)]
         k += 1
-        print(populationAll[0].individual, populationAll[0].fitness)
+
 
     arr = populationAll[0].individual
 
