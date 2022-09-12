@@ -1,61 +1,172 @@
-
 import random
-import json
-import matplotlib.pyplot as plt
+from itertools import *
 import numpy as np
+from operator import attrgetter
 
-import numpy
 
-from deap import algorithms
-from deap import base
-from deap import creator
-from deap import tools
+data = [[0, 43,56,3,6,34],
+    [43,0,34,523,23, 53],
+    [56,34,0,23,43,52],
+    [3,523,23,0,34,3423],
+    [6,23,43,34,0,23],
+    [34,53,52,3423,23,0]]
 
-# gr*.json contains the distance map in list of list style in JSON format
-# Optimal solutions are : gr17 = 2085, gr24 = 1272, gr120 = 6942
-class GeneticsAlg:
-    def __init__(self, countCity, cityDist):
-        self.toolbox = base.Toolbox()
+def selRandom(individuals, k):
+    """Select *k* individuals at random from the input *individuals* with
+    replacement. The list returned contains references to the input
+    *individuals*.
+    :param individuals: A list of individuals to select from.
+    :param k: The number of individuals to select.
+    :returns: A list of selected individuals.
+    This function uses the :func:`~random.choice` function from the
+    python base :mod:`random` module.
+    """
+    return [random.choice(individuals) for i in range(k)]
 
-        class Foo(list):
-            spam = 1
-            def __init__(self):
-                self.bar = dict()
+def selTournament(individuals, k, tournsize, fit_attr="fitness"):
+    """Select the best individual among *tournsize* randomly chosen
+    individuals, *k* times. The list returned contains
+    references to the input *individuals*.
+    :param individuals: A list of individuals to select from.
+    :param k: The number of individuals to select.
+    :param tournsize: The number of individuals participating in each tournament.
+    :param fit_attr: The attribute of individuals to use as selection criterion
+    :returns: A list of selected individuals.
+    This function uses the :func:`~random.choice` function from the python base
+    :mod:`random` module.
+    """
+    chosen = []
+    for i in range(k):
+        aspirants = selRandom(individuals, tournsize)
+        chosen.append(max(aspirants, key=attrgetter(fit_attr)))
+    return chosen
 
-        IND_SIZE = countCity
-        self.distance_map = cityDist
+class Individual:
+    def __init__(self, ind, fitness):
+        self.individual = ind
+        self.fitness = fitness
 
-        creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
-        creator.create("Individual", list, fitness=creator.FitnessMin)
+def cxOnePoint(ind1, ind2, cxpb):
+    if (random.randint(0, 100)/100 < cxpb):
+        size = min(len(ind1), len(ind2))
+        p1, p2 = [0] * size, [0] * size
 
-    # Attribute generator
-        self.toolbox.register("indices", random.sample, range(IND_SIZE), IND_SIZE)
+        # Initialize the position of each indices in the individuals
+        for i in range(size):
+            p1[ind1[i]] = i
+            p2[ind2[i]] = i
+        # Choose crossover points
+        cxpoint1 = random.randint(0, size)
+        cxpoint2 = random.randint(0, size - 1)
+        if cxpoint2 >= cxpoint1:
+            cxpoint2 += 1
+        else:  # Swap the two cx points
+            cxpoint1, cxpoint2 = cxpoint2, cxpoint1
 
-    # Structure initializers
-        self.toolbox.register("individual", tools.initIterate, creator.Individual, self.toolbox.indices)
-        self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
+        # Apply crossover between cx points
+        for i in range(cxpoint1, cxpoint2):
+            # Keep track of the selected values
+            temp1 = ind1[i]
+            temp2 = ind2[i]
+            # Swap the matched value
+            ind1[i], ind1[p1[temp2]] = temp2, temp1
+            ind2[i], ind2[p2[temp1]] = temp1, temp2
+            # Position bookkeeping
+            p1[temp1], p1[temp2] = p1[temp2], p1[temp1]
+            p2[temp1], p2[temp2] = p2[temp2], p2[temp1]
 
-        self.toolbox.register("mate", tools.cxPartialyMatched)
-        self.toolbox.register("mutate", tools.mutShuffleIndexes, indpb=0.05)
-        self.toolbox.register("select", tools.selTournament, tournsize=3)
-        self.toolbox.register("evaluate", self.evalTSP)
+    return ind1, ind2
 
-    def evalTSP(self, individual):
-        distance = self.distance_map[individual[-1]][individual[0]]
-        for gene1, gene2 in zip(individual[0:-1], individual[1:]):
-            distance += self.distance_map[gene1][gene2]
-        return distance,
+def mutFlipBit(individual, mutpb):
+    size = len(individual)
+    for i in range(size):
+        if random.random() < mutpb:
+            swap_indx = random.randint(0, size - 2)
+            if swap_indx >= i:
+                swap_indx += 1
+            individual[i], individual[swap_indx] = \
+                individual[swap_indx], individual[i]
 
-    def start(self, npop=300, ngen=100, cxpb=0.7, mutpb=0.2):
 
-        pop = self.toolbox.population(n=npop)
+    return individual
 
-        hof = tools.HallOfFame(1)
-        algorithms.eaSimple(pop, self.toolbox, cxpb, mutpb, ngen, halloffame=hof)
+def startGenAlg(data, citiesCount, npop=300, ngen=100, cxpb=0.7, mutpb=0.2):
+    arr = []
+    for i in range(0, citiesCount):
+        arr.append(i)
 
-        arr = hof[0]
+    population = []
 
-        while arr[0] != 0:
-            arr = np.roll(arr, 1)
-        best_ind = arr
-        return best_ind
+    for i in range(npop):
+        population.append(random.sample(arr, citiesCount))
+
+    # вся популяция из объектов
+    populationAll = []
+    for i in population:
+        fitness = 0
+        for j in range(len(i)-1):
+            fitness += data[i[j]][i[j+1]]
+        fitness += data[i[-1]][i[0]]
+        ind = Individual(i, fitness)
+        populationAll.append(ind)
+
+
+    populationAll.sort(key=lambda x: x.fitness)
+
+
+    # Два случайных родителя
+    k=0
+    while (k != ngen):
+        parent1 = 0
+        parent2 = 0
+
+        while(parent1 == parent2):
+            parent1 = random.randint(0, len(populationAll)-1)
+            parent2 = random.randint(0, len(populationAll) - 1)
+
+  #      parentInd1 = populationAll[parent1].individual
+   #     parentInd2 = populationAll[parent2].individual
+        parents = selTournament(populationAll, k=2, tournsize=10)
+        parentInd1 = parents[0].individual
+        parentInd2 = parents[1].individual
+
+        # скрестили родителей, получили детей
+        child1, child2 = cxOnePoint(parentInd1, parentInd2, cxpb)
+
+        # мутация детей
+        mutChild1, mutChild2 = mutFlipBit(child1, mutpb), mutFlipBit(child2, mutpb)
+
+        # добавляем одного ребенка
+        fitness = 0
+        for j in range(len(mutChild1)-1):
+            fitness += data[mutChild1[j]][mutChild1[j+1]]
+        fitness += data[mutChild1[-1]][mutChild1[0]]
+        ind = Individual(mutChild1, fitness)
+        populationAll.append(ind)
+
+        # и второго
+
+        fitness = 0
+        for j in range(len(mutChild2)-1):
+            fitness += data[mutChild2[j]][mutChild2[j+1]]
+        fitness += data[mutChild2[-1]][mutChild2[0]]
+        ind = Individual(mutChild2, fitness)
+        populationAll.append(ind)
+
+        populationAll.sort(key=lambda x: x.fitness)
+        populationAll = populationAll[:(len(populationAll)-2)]
+        k += 1
+        print(populationAll[0].individual, populationAll[0].fitness)
+
+    arr = populationAll[0].individual
+
+    while arr[0] != 0:
+        arr = np.roll(arr, 1)
+    best_ind = arr
+    print(best_ind)
+    print(populationAll[0].fitness)
+
+    return best_ind, populationAll[0].fitness
+
+
+

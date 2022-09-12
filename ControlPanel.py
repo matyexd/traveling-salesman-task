@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QGroupBox, QGraphicsScene, QPushButton, QLineEdit, QLabel, QFileDialog, QRadioButton, QGridLayout, QCheckBox, QMessageBox
 from PyQt5.QtCore import QUrl
-from algTravelSal import GeneticsAlg
+from algTravelSal import startGenAlg
 import json
 from utils import correctUploadedFile
 
@@ -173,15 +173,14 @@ class ControlPanel(QGroupBox):
             if (len(self.cityFromFile) < 2):
                 self.errorChooseFile.exec_()
                 return
-            alg = GeneticsAlg(len(self.cityFromFile), self.cityFromFile)
             if (self.checkbox.isChecked()):
                 if (self.getDataFromSettings()):
                     npop, ngen, cxpb, mutpb = self.getDataFromSettings()
-                    best_ind = alg.start(npop, ngen, cxpb, mutpb)
+                    best_ind, best_fitness = startGenAlg(self.citiesMatrix, len(self.citiesMatrix), npop, ngen, cxpb, mutpb)
                 else:
                     return
             else:
-                best_ind = alg.start()
+                best_ind, best_fitness = startGenAlg(self.citiesMatrix, len(self.citiesMatrix))
             self.bestRoute = best_ind
         elif self.radiobuttonManual:
             citiesCoordinates = self.scene.getCities()
@@ -202,15 +201,14 @@ class ControlPanel(QGroupBox):
                         arr.append(round(dist, 3))
 
                 self.citiesMatrix.append(arr)
-            alg = GeneticsAlg(len(self.citiesMatrix), self.citiesMatrix)
             if (self.checkbox.isChecked()):
                 if (self.getDataFromSettings()):
                     npop, ngen, cxpb, mutpb = self.getDataFromSettings()
-                    best_ind = alg.start(npop, ngen, cxpb, mutpb)
+                    best_ind, best_fitness = startGenAlg(self.citiesMatrix, len(self.citiesMatrix),npop, ngen, cxpb, mutpb)
                 else:
                     return
             else:
-                best_ind = alg.start()
+                best_ind, best_fitness = startGenAlg(self.citiesMatrix, len(self.citiesMatrix))
             self.scene.drawBestRoute(best_ind)
             self.bestRoute = best_ind
         self.showBestRoute(self.bestRoute)
