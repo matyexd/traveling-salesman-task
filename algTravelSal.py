@@ -46,49 +46,49 @@ class Individual:
         self.individual = ind
         self.fitness = fitness
 
-def cxOnePoint(ind1, ind2, cxpb):
+def cxOnePoint(child1, child2, cxpb):
     if (random.randint(0, 100)/100 < cxpb):
-        size = min(len(ind1), len(ind2))
-        p1, p2 = [0] * size, [0] * size
+        s = random.randint(2, len(child1)-3)
+        child1cp, child2cp = child1, child2
+        ch1, ch2 = child1[:s], child2[:s]
+        arr = []
+        for i in range(0, s):
+            arr.append(child1cp[i])
+        for i in range(s, len(child1)):
+            if (child2cp[i] not in ch1):
+                ch1.append(child2cp[i])
+            arr.append(child2cp[i])
+        for i in child1cp:
+            if (i not in arr):
+                ch1.append(i)
+        arr = []
+        for i in range(0, s):
+            arr.append(child2cp[i])
+        for i in range(s, len(child2)):
+            if (child1cp[i] not in ch2):
+                ch2.append(child1cp[i])
+            arr.append(child1cp[i])
+        for i in child2cp:
+            if (i not in arr):
+                ch2.append(i)
+        child1, child2 = ch1, ch2
+    return child1, child2
 
-        # Initialize the position of each indices in the individuals
-        for i in range(size):
-            p1[ind1[i]] = i
-            p2[ind2[i]] = i
-        # Choose crossover points
-        cxpoint1 = random.randint(0, size)
-        cxpoint2 = random.randint(0, size - 1)
-        if cxpoint2 >= cxpoint1:
-            cxpoint2 += 1
-        else:  # Swap the two cx points
-            cxpoint1, cxpoint2 = cxpoint2, cxpoint1
+def mutFlipBit(mutant, mutpb):
+    if (random.randint(0, 100) / 100 < mutpb):
+        pos1 = 0
+        pos2 = 0
 
-        # Apply crossover between cx points
-        for i in range(cxpoint1, cxpoint2):
-            # Keep track of the selected values
-            temp1 = ind1[i]
-            temp2 = ind2[i]
-            # Swap the matched value
-            ind1[i], ind1[p1[temp2]] = temp2, temp1
-            ind2[i], ind2[p2[temp1]] = temp1, temp2
-            # Position bookkeeping
-            p1[temp1], p1[temp2] = p1[temp2], p1[temp1]
-            p2[temp1], p2[temp2] = p2[temp2], p2[temp1]
+        while (pos1 == pos2):
+            pos1 = random.randint(0, len(mutant) - 1)
+            pos2 = random.randint(0, len(mutant) - 1)
+        mutant1 = mutant.copy()
 
-    return ind1, ind2
+        mutant1[pos1] = mutant[pos2]
+        mutant1[pos2] = mutant[pos1]
+        mutant = mutant1
 
-def mutFlipBit(individual, mutpb):
-    size = len(individual)
-    for i in range(size):
-        if random.random() < mutpb:
-            swap_indx = random.randint(0, size - 2)
-            if swap_indx >= i:
-                swap_indx += 1
-            individual[i], individual[swap_indx] = \
-                individual[swap_indx], individual[i]
-
-
-    return individual
+    return mutant
 
 def startGenAlg(data, citiesCount, npop=300, ngen=100, cxpb=0.7, mutpb=0.2):
     arr = []
