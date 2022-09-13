@@ -78,16 +78,12 @@ def mut(mutant):
     return mutant
 
 def startGenAlg(data, citiesCount, npop=200, ngen=40000, cxpb=0.9, mutpb=0.2):
-
     arr = []
     for i in range(0, citiesCount):
         arr.append(i)
-
     population = []
-
     for i in range(npop):
         population.append(random.sample(arr, citiesCount))
-
     # вся популяция из объектов
     populationAll = []
     for i in population:
@@ -105,15 +101,6 @@ def startGenAlg(data, citiesCount, npop=200, ngen=40000, cxpb=0.9, mutpb=0.2):
     # Два случайных родителя
     k=0
     while (k != ngen):
-        parent1 = 0
-        parent2 = 0
-
-        while(parent1 == parent2):
-            parent1 = random.randint(0, len(populationAll)-1)
-            parent2 = random.randint(0, len(populationAll) - 1)
-
-  #      parentInd1 = populationAll[parent1].individual
-   #     parentInd2 = populationAll[parent2].individual
         parents = selTournament(populationAll, k=2, tournsize=10)
         parentInd1 = parents[0].individual
         parentInd2 = parents[1].individual

@@ -17,7 +17,7 @@ class Window(QMainWindow):
         self.scene = SceneGraph(self)
         self.bestRouteMain = []
 
-        self.title = "PyQt5 QGraphicView"
+        self.title = "Коммивояжер"
         self.top = 200
         self.left = 500
         self.width = 1280
@@ -38,8 +38,6 @@ class Window(QMainWindow):
         self.resultPanel = ResultPanel(self, self.scene)
         GraphField(self, self.scene)
         self.controlPanel = ControlPanel(self, self.scene, self.resultPanel.showBestRoute, self.resultPanel.showLengthRoute)
-    def printHelloWorld(self):
-        print('hello world')
 
 
 App = QApplication(sys.argv)

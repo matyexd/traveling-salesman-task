@@ -2,7 +2,7 @@ from unittest import TestCase, main
 from algTravelSal import cx
 
 class CxTest(TestCase):
-    def test_cx(self):
+    def test_cxUnic(self):
         status = False
         parent1 = [5,2,4,1,3,6]
         parent2 = [4,2,5,1,3,6]
@@ -15,7 +15,7 @@ class CxTest(TestCase):
                 status = True
         self.assertTrue(status)
 
-    def test_cxValueError(self):
+    def test_cxDifferentSizeParents(self):
         parent1 = [5,2,4,1,3,6]
         parent2 = [4,2,5,1,3]
         with self.assertRaises(ValueError) as e:
